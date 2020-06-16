@@ -1,0 +1,9 @@
+srv = 192.168.1.100
+WIFI - ALHN-3A82
+    LubiePlacki2018
+
+home/hydration/livingroom/avocado - sub
+config/home/hydration/livingroom/avocado - publish
+1883
+
+mongo=mongodb://mlinke:Ny1y5SuGBeNAh8duSBz3x8HSMlVrSvTFcjLXjMuMMV8jxN4G2bMDZfCH0SGpZuN67OZ3AQjXs4CRWISrxqUcKw==@mlinke.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@mlinke@

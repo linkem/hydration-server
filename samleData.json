@@ -1,0 +1,8 @@
+{
+    "sensorId": "abc123",
+    "sensorName": "avocado",
+    "hum": 25,
+    "temp": 25.5,
+    "soil": 55.5,
+    "createdDateUtc": "2020-21-05T18:48:00.000+00:00Z"
+}
