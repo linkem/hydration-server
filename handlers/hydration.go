@@ -5,6 +5,7 @@ import (
 	"log"
 	"mongoDbTest/services"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -22,12 +23,32 @@ func NewHydrationController(l *log.Logger, service services.Hydrations) *Hydrati
 // GetHydrations get all data
 func (h *Hydrations) GetHydrations() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		hydration, err := h.service.GetHydrations(time.Time{}, time.Now(), 1, 200)
+		pageSizeString := r.URL.Query().Get("pageSize")
+		pageString := r.URL.Query().Get("page")
+		pageSize := 0
+		page := 0
+		var err error
+		if pageString != "" {
+			page, err = strconv.Atoi(pageString)
+			if err != nil {
+				http.Error(w, "handlers.Hydrations.GetHydrations; Error parsing page", http.StatusBadRequest)
+				return
+			}
+		}
+		if pageSizeString != "" {
+			pageSize, err = strconv.Atoi(pageSizeString)
+			if err != nil {
+				http.Error(w, "handlers.Hydrations.GetHydrations; Error parsing pageSize", http.StatusBadRequest)
+				return
+			}
+		}
+		hydration, err := h.service.GetHydrations(r.Context(), time.Time{}, time.Now(), page, pageSize)
 		if err != nil {
 			http.Error(w, "handlers.Hydrations.GetHydrations error", http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+		h.l.Printf("Results: %d", len(*hydration))
 		json.NewEncoder(w).Encode(hydration)
 	}
 }
