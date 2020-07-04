@@ -48,7 +48,7 @@ func (h *hydrations) GetHydrations(ctx context.Context, from time.Time, to time.
 	}
 	hydration := make([]models.Hydration, 0, pageSize)
 	pageSizeInt64 := int64(pageSize)
-	pageSkipInt64 := int64(page) - 1
+	pageSkipInt64 := (int64(page) - 1) * pageSizeInt64
 	opt := options.FindOptions{
 		Limit: &pageSizeInt64,
 		Skip:  &pageSkipInt64,
