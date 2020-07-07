@@ -1,1 +1,1 @@
-env GOOS=linux GOARCH=arm GOARM=5 go build -o arm-output
+env GOOS=linux GOARCH=arm GOARM=5 go build -o bin/arm-output cmd/hydration-app/main.go
