@@ -1,0 +1,36 @@
+syntax = "proto3";
+// import "google/protobuf/timestamp.proto";
+option go_package = "mongoDbTest/models";
+
+message Hydration{
+    float soil = 1;
+    float hum = 2;
+    float temp = 3;
+    // google.protobuf.Timestamp createdDateUtc = 4;
+    string id = 5;
+}
+
+message HydrationGrouped{
+    float soil = 1;
+    float hum = 2;
+    float temp = 3;
+    // google.protobuf.Timestamp createdDateUtc = 4;
+    int32 samples = 5;
+}
+
+message HydrationsRequest{
+}
+message HydrationsResponse{
+    repeated Hydration hydrations = 1;
+}
+
+message HydrationGroupedRequest{
+}
+message HydrationGroupedResponse{
+    repeated HydrationGrouped hydrations = 1;
+}
+// The greeting service definition.
+service HydrationService {
+    rpc GetHydrations (HydrationsRequest) returns (HydrationsResponse) {}
+    rpc GetGroupedHydrations (HydrationGroupedRequest) returns (HydrationGroupedResponse) {}
+  }

@@ -25,8 +25,8 @@ func (h *Hydrations) GetHydrations() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pageSizeString := r.URL.Query().Get("pageSize")
 		pageString := r.URL.Query().Get("page")
-		pageSize := 0
-		page := 0
+		pageSize := 15
+		page := 1
 		var err error
 		if pageString != "" {
 			page, err = strconv.Atoi(pageString)

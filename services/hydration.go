@@ -46,13 +46,9 @@ func (h *hydrations) GetHydrations(ctx context.Context, from time.Time, to time.
 	if pageSize <= 0 {
 		pageSize = defaultPageSize
 	}
-	// pageSizeInt64 := int64(pageSize)
-	// pageSkipInt64 := (int64(page) - 1) * pageSizeInt64
-	// opt := options.FindOptions{
-	// 	Limit: &pageSizeInt64,
-	// 	Skip:  &pageSkipInt64,
-	// 	Sort:  bson.D{{Key: "createdDateUtc", Value: -1}},
-	// }
+	pageSizeInt64 := int64(pageSize)
+	pageSkipItemsInt64 := (int64(page) - 1) * pageSizeInt64
+
 	// filter := bson.D{
 	// 	// {Key: "createdDateUtc", Value: bson.D{
 	// 	// 	{Key: "$gte", Value: from},
@@ -62,41 +58,7 @@ func (h *hydrations) GetHydrations(ctx context.Context, from time.Time, to time.
 	// from = time.Date(2020, 5, 25, 23, 29, 0, 0, time.UTC)
 	// to = time.Date(2020, 5, 25, 23, 35, 0, 0, time.UTC)
 	ctxWithTimeout, _ := context.WithTimeout(ctx, 30*time.Second)
-
-	// V1
-	// group := bson.D{{Key: "$group", Value: bson.D{{
-	// 	Key: "_id", Value: bson.D{
-	// 		{Key: "h", Value: bson.D{{Key: "$hour", Value: "$createdDateUtc"}}},
-	// 		{Key: "doy", Value: bson.D{{Key: "$dayOfYear", Value: "$createdDateUtc"}}}}},
-	// 	{Key: "soil", Value: bson.D{{Key: "$avg", Value: "$soil"}}},
-	// 	{Key: "temp", Value: bson.D{{Key: "$avg", Value: "$temp"}}},
-	// 	{Key: "hum", Value: bson.D{{Key: "$avg", Value: "$hum"}}},
-	// 	{Key: "samples", Value: bson.D{{Key: "$sum", Value: 1}}},
-	// 	{Key: "date", Value: bson.D{{Key: "$min", Value: "$createdDateUtc"}}},
-	// }}}
-
-	// tempMatch := bson.D{{Key: "$match", Value: bson.D{{Key: "temp", Value: bson.D{
-	// 	{Key: "$nin", Value: bson.A{0}},
-	// }}}}}
-	// humMatch := bson.D{{Key: "$match", Value: bson.D{{Key: "hum", Value: bson.D{
-	// 	{Key: "$nin", Value: bson.A{0}},
-	// }}}}}
-	// soilMatch := bson.D{{Key: "$match", Value: bson.D{{Key: "soil", Value: bson.D{
-	// 	{Key: "$nin", Value: bson.A{0}},
-	// }}}}}
-
-	// project := bson.D{{Key: "$project", Value: bson.D{
-	// 	{Key: "_id", Value: 1},
-	// 	{Key: "soil", Value: bson.D{{Key: "$divide", Value: bson.A{bson.D{{Key: "$trunc", Value: bson.D{{Key: "$multiply", Value: bson.A{"$soil", 10}}}}}, 10}}}},
-	// 	{Key: "temp", Value: bson.D{{Key: "$divide", Value: bson.A{bson.D{{Key: "$trunc", Value: bson.D{{Key: "$multiply", Value: bson.A{"$temp", 10}}}}}, 10}}}},
-	// 	{Key: "hum", Value: bson.D{{Key: "$divide", Value: bson.A{bson.D{{Key: "$trunc", Value: bson.D{{Key: "$multiply", Value: bson.A{"$hum", 10}}}}}, 10}}}},
-	// 	{Key: "samples", Value: 1},
-	// 	{Key: "createdDateUtc", Value: bson.D{
-	// 		{Key: "$dateToString", Value: bson.D{
-	// 			{Key: "format", Value: "%Y-%m-%dT%H:00:00.000Z"},
-	// 			{Key: "date", Value: "$date"}}}}},
-	// }}}
-
+	//v2
 	aggregation := []bson.M{}
 	aggregation = append(aggregation, bson.M{"$match": bson.M{"temp": bson.M{"$nin": bson.A{0}}}})
 	aggregation = append(aggregation, bson.M{"$match": bson.M{"hum": bson.M{"$nin": bson.A{0}}}})
@@ -112,7 +74,6 @@ func (h *hydrations) GetHydrations(ctx context.Context, from time.Time, to time.
 		"date":    bson.M{"$min": "$createdDateUtc"},
 	}})
 	aggregation = append(aggregation, bson.M{"$project": bson.M{
-		"_id":     0,
 		"soil":    bson.M{"$divide": bson.A{bson.M{"$trunc": bson.M{"$multiply": bson.A{"$soil", 10}}}, 10}},
 		"temp":    bson.M{"$divide": bson.A{bson.M{"$trunc": bson.M{"$multiply": bson.A{"$temp", 10}}}, 10}},
 		"hum":     bson.M{"$divide": bson.A{bson.M{"$trunc": bson.M{"$multiply": bson.A{"$hum", 10}}}, 10}},
@@ -121,9 +82,10 @@ func (h *hydrations) GetHydrations(ctx context.Context, from time.Time, to time.
 			"$dateToString": bson.M{
 				"format": "%Y-%m-%dT%H:00:00.000Z",
 				"date":   "$date"}}}})
-	aggregation = append(aggregation, bson.M{"$sort": bson.D{{Key: "_id.doy", Value: 1}, {Key: "_id.h", Value: 1}}})
-	// aggregation = append(aggregation, bson.M{"$limit": 5})
-	// aggregation = append(aggregation, bson.M{"$skip": 5})
+
+	aggregation = append(aggregation, bson.M{"$sort": bson.D{{Key: "_id.doy", Value: -1}, {Key: "_id.h", Value: -1}}})
+	aggregation = append(aggregation, bson.M{"$limit": pageSizeInt64})
+	aggregation = append(aggregation, bson.M{"$skip": pageSkipItemsInt64})
 	cur, err := h.hydrationCollection.Aggregate(ctxWithTimeout, aggregation)
 
 	if err != nil {
@@ -131,12 +93,15 @@ func (h *hydrations) GetHydrations(ctx context.Context, from time.Time, to time.
 	}
 	defer cur.Close(ctxWithTimeout)
 	hydrationGroup := make([]models.HydrationGroup, 0, pageSize)
+	cur.Next(ctxWithTimeout)
+	h.l.Println(cur.Current)
 	if err := cur.All(ctxWithTimeout, &hydrationGroup); err != nil {
 		h.l.Panic(err)
 	}
 	if err := cur.Err(); err != nil {
 		log.Fatal(err)
 	}
+	h.l.Println(hydrationGroup)
 	return &hydrationGroup, nil
 }
 

@@ -1,0 +1,1 @@
+C:\Users\mlink\Downloads\protoc-3.13.0-win64\bin\protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto\hydration.proto

@@ -27,7 +27,8 @@ func routes(hydrationService services.Hydrations) *mux.Router {
 	router.HandleFunc("/time", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, time.Now().UTC())
 	})
-	router.HandleFunc("/hydration", controller.GetHydrations()).Methods("GET")
+
+	router.HandleFunc("/hydration", controller.GetHydrations()).Methods(http.MethodGet)
 	return router
 }
 
