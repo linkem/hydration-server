@@ -12,7 +12,7 @@ variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '06bcc9be-63e8-47f7-ac5b-c65415a38d54'
   imageRepository: 'linkemhydrationserver'
-  containerRegistry: 'mlinkeregister.azurecr.io'
+  containerRegistry: 'hydration.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
   
@@ -28,12 +28,27 @@ stages:
     pool:
       vmImage: $(vmImageName)
     steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
+    - task: DockerInstaller@0
+      displayName: 'Install Docker 19.03.13'
       inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
+        dockerVersion: 19.03.13
+    - task: Docker@1
+      displayName: login
+      inputs:
+        azureSubscriptionEndpoint: 'Visual Studio Enterprise – MPN (0b7f8398-c9cd-485a-aaa1-913f1a5b99ba)'
+        azureContainerRegistry: $(containerRegistry)
+        command: login
+    - powershell: |
+        #Write-Host "docker run --rm --privileged docker/binfmt:a7996909642ee92942dcd6cff44b9b95f08dad64"
+        #docker run --rm --privileged docker/binfmt:a7996909642ee92942dcd6cff44b9b95f08dad64
+        Write-Host "sudo apt-get install qemu-user-static"
+        sudo apt-get install qemu-user-static
+      displayName: 'Install Qemu'
+    - powershell: |
+        Write-Host "docker buildx create --use --name build --node build --driver-opt network=host"
+        docker buildx create --use --name build --node build --driver-opt network=host
+      displayName: 'Create builder'
+    - powershell: |
+        Write-Host "docker buildx"
+        docker buildx build -f /home/vsts/work/1/s/Dockerfile --platform linux/amd64,linux/arm64 -t $(containerRegistry)/linkem/hydration-server:$(Build.BuildId) -t $(containerRegistry)/linkem/hydration-server /home/vsts/work/1/s --push
+      displayName: 'Buildx and push'
