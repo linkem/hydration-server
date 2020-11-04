@@ -19,8 +19,8 @@ var c config.Config = config.Config{
 		ServerName          string `json:"serverName"`
 		HydrationCollection string `json:"hydration"`
 	}{
-		// ConnectionString: "mongodb://mlinke:Ny1y5SuGBeNAh8duSBz3x8HSMlVrSvTFcjLXjMuMMV8jxN4G2bMDZfCH0SGpZuN67OZ3AQjXs4CRWISrxqUcKw==@mlinke.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@mlinke@",
-		ConnectionString: "mongodb://192.168.1.100:27017",
+		ConnectionString: "mongodb://mlinke:Ny1y5SuGBeNAh8duSBz3x8HSMlVrSvTFcjLXjMuMMV8jxN4G2bMDZfCH0SGpZuN67OZ3AQjXs4CRWISrxqUcKw==@mlinke.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@mlinke@",
+		// ConnectionString: "mongodb://192.168.1.100:27017",
 	},
 	Mqtt: struct {
 		Enabled          bool   `json:"enabled"`
@@ -76,7 +76,6 @@ func initConfig() {
 		}
 		c.Server.Enabled = httpServerEnabledBool
 	}
-
 }
 func main() {
 	initConfig()
