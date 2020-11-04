@@ -78,6 +78,9 @@ func initConfig() {
 }
 func main() {
 	initConfig()
+	progLog.Println("MQTT ENV value: " + os.Getenv("MQTT__ENABLED"))
+	progLog.Println("MQTT Conf value: " + strconv.FormatBool(c.Mqtt.Enabled))
+
 	progLog.Println("Create Context")
 	// trap Ctrl+C and call cancel on the context
 	backgroundCtx := context.Background()
