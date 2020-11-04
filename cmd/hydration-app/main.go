@@ -44,7 +44,6 @@ var c config.Config = config.Config{
 var progLog *log.Logger = log.New(os.Stdout, "App ", log.LstdFlags)
 
 func initConfig() {
-	os.Setenv("MQTT__ENABLED", "true")
 	// MONGO
 	dbConnectionString := os.Getenv("MONGO__CONNECTIONSTRING")
 	if dbConnectionString != "" {
