@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	httpServer "mongoDbTest/http"
 	config "mongoDbTest/models"
@@ -9,6 +10,7 @@ import (
 	"mongoDbTest/services"
 	"os"
 	"os/signal"
+	"strconv"
 )
 
 var c config.Config = config.Config{
@@ -41,7 +43,43 @@ var c config.Config = config.Config{
 }
 var progLog *log.Logger = log.New(os.Stdout, "App ", log.LstdFlags)
 
+func initConfig() {
+	os.Setenv("MQTT__ENABLED", "true")
+	// MONGO
+	dbConnectionString := os.Getenv("MONGO__CONNECTIONSTRING")
+	if dbConnectionString != "" {
+		c.MongoDb.ConnectionString = dbConnectionString
+	}
+
+	//MQTT
+	mqttEnabled := os.Getenv("MQTT__ENABLED")
+	if mqttEnabled != "" {
+		mqttEnabledBool, err := strconv.ParseBool(mqttEnabled)
+		if err != nil {
+			panic(fmt.Sprint("MQTT__ENABLED - variable had error;" + err.Error()))
+		}
+		c.Mqtt.Enabled = mqttEnabledBool
+	}
+	if c.Mqtt.Enabled {
+		mqttConnectionString := os.Getenv("MQTT__CONNECTIONSTRING")
+		if mqttConnectionString != "" {
+			c.Mqtt.ConnectionString = mqttConnectionString
+		}
+	}
+
+	//SERVER
+	httpServerEnabled := os.Getenv("HTTPSERVER__ENABLED")
+	if httpServerEnabled != "" {
+		httpServerEnabledBool, err := strconv.ParseBool(httpServerEnabled)
+		if err != nil {
+			panic(fmt.Sprint("HTTPSERVER__ENABLED - variable had error;", err))
+		}
+		c.Server.Enabled = httpServerEnabledBool
+	}
+
+}
 func main() {
+	initConfig()
 	progLog.Println("Create Context")
 	// trap Ctrl+C and call cancel on the context
 	backgroundCtx := context.Background()
